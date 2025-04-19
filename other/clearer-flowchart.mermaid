@@ -1,0 +1,55 @@
+flowchart TD
+    Start([游戏开始]) --> Hotel[地点: 起始点]
+    
+    %% 从起始点的决策路径
+    Hotel --> DiceH{掷骰子}
+    
+    %% 骰子结果小于等于3
+    DiceH -->|骰子 ≤ 3| LowRollH[能量等级: 0]
+    LowRollH --> Canteen[地点: 食堂]
+    
+    %% 骰子结果大于3
+    DiceH -->|骰子 > 3| HighRollH[能量等级: 5]
+    HighRollH --> ChoiceH{选择地点}
+    ChoiceH -->|选项 1| Canteen
+    ChoiceH -->|选项 2| CompBuild[地点: 交流楼]
+    ChoiceH -->|选项 3| ExBuild[地点: 杨府甲楼]
+    
+    %% 从食堂出发的路径
+    Canteen --> EnergyRestore[能量恢复至 10]
+    EnergyRestore --> DiceC{掷骰子}
+    
+    %% 食堂骰子结果
+    DiceC -->|骰子 ≤ 3| CompBuild
+    DiceC -->|骰子 > 3| ExBuild
+    
+    %% 从交流楼出发的路径
+    CompBuild --> DiceComp{掷骰子}
+    DiceComp -->|骰子 ≤ 3| LibrarySuccessA[前往: 图书馆]
+    DiceComp -->|骰子 > 3| FailA[失败: 被怪物抓住]
+    
+    %% 从杨府甲楼出发的路径 - 直接从起始点
+    ExBuild --> EnergyCheck{能量检查}
+    EnergyCheck -->|能量 > 5| LibrarySuccessB[前往: 图书馆]
+    EnergyCheck -->|能量 ≤ 5| FailB[失败: 能量不足]
+    
+    %% 成功路径在图书馆汇合
+    LibrarySuccessA --> Library([成功: 到达图书馆])
+    LibrarySuccessB --> Library
+    
+    %% 失败路径
+    FailA --> GameOver([游戏结束])
+    FailB --> GameOver
+    
+    %% 路径标记和颜色
+    classDef success fill:#9f9,stroke:#6b6,stroke-width:4px,color:#004d00,font-weight:bold;
+    classDef failure fill:#f99,stroke:#b66,stroke-width:4px,color:#990000,font-weight:bold;
+    classDef location fill:#bbf,stroke:#99f,stroke-width:4px,color:#000066,font-weight:bold;
+    classDef decision fill:#fd9,stroke:#f90,stroke-width:4px,color:#994c00,font-weight:bold;
+    classDef energy fill:#fcf,stroke:#c9c,stroke-width:4px,color:#660066,font-weight:bold;
+    
+    class LibrarySuccessA,LibrarySuccessB,Library success;
+    class FailA,FailB,GameOver failure;
+    class Hotel,Canteen,CompBuild,ExBuild location;
+    class DiceH,DiceC,DiceComp,ChoiceH,EnergyCheck decision;
+    class LowRollH,HighRollH,EnergyRestore energy;
