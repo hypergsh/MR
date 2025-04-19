@@ -1,0 +1,55 @@
+flowchart TD
+    Start([Game Start]) --> Hotel[Location: Starting Point]
+    
+    %% Decision paths from Starting Point
+    Hotel --> DiceH{Roll Dice}
+    
+    %% Dice result less than or equal to 3
+    DiceH -->|Dice ≤ 3| LowRollH[Energy Level: 0]
+    LowRollH --> Canteen[Location: Canteen]
+    
+    %% Dice result greater than 3
+    DiceH -->|Dice > 3| HighRollH[Energy Level: 5]
+    HighRollH --> ChoiceH{Choose Location}
+    ChoiceH -->|Option 1| Canteen
+    ChoiceH -->|Option 2| CompBuild[Location: Exchange Building]
+    ChoiceH -->|Option 3| ExBuild[Location: Yangfujia Building]
+    
+    %% Paths from Canteen
+    Canteen --> EnergyRestore[Energy Restored to 10]
+    EnergyRestore --> DiceC{Roll Dice}
+    
+    %% Canteen dice results
+    DiceC -->|Dice ≤ 3| CompBuild
+    DiceC -->|Dice > 3| ExBuild
+    
+    %% Paths from Exchange Building
+    CompBuild --> DiceComp{Roll Dice}
+    DiceComp -->|Dice ≤ 3| LibrarySuccessA[Proceed to: Library]
+    DiceComp -->|Dice > 3| FailA[Failure: Caught by Monster]
+    
+    %% Paths from Yangfujia Building - coming directly from Starting Point
+    ExBuild --> EnergyCheck{Energy Check}
+    EnergyCheck -->|Energy > 5| LibrarySuccessB[Proceed to: Library]
+    EnergyCheck -->|Energy ≤ 5| FailB[Failure: Insufficient Energy]
+    
+    %% Success paths converge at Library
+    LibrarySuccessA --> Library([Success: Reached Library])
+    LibrarySuccessB --> Library
+    
+    %% Failure paths
+    FailA --> GameOver([Game Over])
+    FailB --> GameOver
+    
+    %% Path markers and colors
+    classDef success fill:#9f9,stroke:#6b6,stroke-width:2px;
+    classDef failure fill:#f99,stroke:#b66,stroke-width:2px;
+    classDef location fill:#bbf,stroke:#99f,stroke-width:2px;
+    classDef decision fill:#fd9,stroke:#f90,stroke-width:2px;
+    classDef energy fill:#fcf,stroke:#c9c,stroke-width:2px;
+    
+    class LibrarySuccessA,LibrarySuccessB,Library success;
+    class FailA,FailB,GameOver failure;
+    class Hotel,Canteen,CompBuild,ExBuild location;
+    class DiceH,DiceC,DiceComp,ChoiceH,EnergyCheck decision;
+    class LowRollH,HighRollH,EnergyRestore energy;
