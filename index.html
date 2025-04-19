@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus Adventure Game</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.4/html5-qrcode.min.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 1rem;
+            background-color: #f5f5f5;
+        }
+        .game-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .status-box {
+            background-color: #f0f8ff;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .game-controls {
+            margin-top: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .status-item {
+            margin-bottom: 0.5rem;
+        }
+        .instruction-box {
+            margin-top: 2rem;
+            background-color: #fffaf0;
+            border-left: 4px solid #ffa500;
+            padding: 1rem;
+            border-radius: 0 5px 5px 0;
+        }
+        #gameMessage {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 1.5rem;
+            background-color: #e7f3ff;
+            padding: 1rem;
+            border-radius: 5px;
+            border-left: 4px solid #4285f4;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        .failure {
+            color: red;
+            font-weight: bold;
+        }
+        .dice-container {
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+        .dice {
+            font-size: 4rem;
+            margin: 0.5rem 0;
+        }
+        h1, h2, h3 {
+            color: #2e7d32;
+            text-align: center;
+        }
+        .qr-info {
+            margin-top: 2rem;
+            background-color: #fff3e0;
+            border-radius: 8px;
+            padding: 1rem;
+        }
+        
+        /* Scanner styles */
+        #scannerContainer {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .scanner-content {
+            background-color: white;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        #reader {
+            width: 100%;
+            margin: 0 auto;
+        }
+        .scanner-controls {
+            margin-top: 1.5rem;
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+        .scanner-controls button {
+            min-width: 120px;
+        }
+        .error-message {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #ffebee;
+            border-left: 4px solid #f44336;
+            border-radius: 8px;
+            display: none;
+        }
+        .scan-button {
+            width: 60px; 
+            height: 60px; 
+            border-radius: 50%; 
+            font-size: 1.5rem; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 0; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            position: fixed; 
+            bottom: 20px; 
+            right: 20px;
+        }
+        
+/* Destination image styles */
+.destination-image-container {
+    text-align: center;
+    margin: 1.5rem 0;
+    display: none; /* Hidden by default */
+    background-color: #f9f9f9;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+.destination-image {
+    max-width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    max-height: 200px;
+    object-fit: cover;
+}
+.destination-caption {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+    color: #2e7d32;
+    font-size: 1.1rem;
+}
+
+/* Multiple destination options styles */
+.destination-options {
+    display: flex !important;
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+    gap: 15px !important;
+    margin-top: 15px !important;
+}
+.additional-destination {
+    text-align: center;
+    width: 30%;
+    transition: transform 0.2s;
+    cursor: pointer;
+}
+.additional-destination:hover {
+    transform: scale(1.05);
+}
+.additional-destination img {
+    width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    max-height: 100px;
+    object-fit: cover;
+}
+.additional-destination .location-title {
+    margin-top: 5px;
+    font-weight: bold;
+    color: #2e7d32;
+}
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>Campus Adventure Game</h1>
+        
+        <div id="gameMessage">Welcome to the Campus Adventure Game! Please scan the QR code at the Starting Point to begin your adventure.</div>
+        
+        <!-- Destination image container -->
+        <div id="destinationImageContainer" class="destination-image-container">
+            <img id="destinationImage" class="destination-image" src="" alt="Destination image">
+            <div id="destinationCaption" class="destination-caption">Proceed to: Unspecified</div>
+        </div>
+        
+        <div class="status-box">
+            <h2>Game Status</h2>
+            <div class="status-item">Current Location: <span id="currentLocation">-</span></div>
+            <div class="status-item">Energy Level: <span id="energyLevel">0</span></div>
+            <div class="status-item">Last Dice Roll: <span id="diceRoll">-</span></div>
+            <div class="status-item">Game Status: <span id="gameResult">Not Started</span></div>
+        </div>
+        
+        <div class="dice-container">
+            <button id="rollDiceButton" onclick="window.gameModule.rollDice()">Roll Dice</button>
+            <div class="dice" id="diceDisplay">🎲</div>
+        </div>
+        
+        <div class="game-controls">
+            <button onclick="window.gameModule.resetGame()">Restart Game</button>
+        </div>
+        
+        <div class="instruction-box">
+            <h3>Game Instructions</h3>
+            <p>You've been chosen for an exciting adventure across the campus! A monster has been released and is chasing you!</p>
+            <p>1. Visit each location in the game (Starting Point, Canteen, Exchange Building, Yangfujia Building, Library)</p>
+            <p>2. At each location, use Google Maps to find the actual building, then click the scan button in the bottom right corner to scan the QR code</p>
+            <p>3. After reaching a new location, roll the dice to determine your next action</p>
+            <p>4. Follow the instructions based on the dice results and proceed to the next location</p>
+            <p>5. The monster moves in a set pattern: it starts at the Starting Point, then goes to the Canteen, then to the Exchange Building</p>
+            <p>6. Your energy starts at 0 and can reach a maximum of 10. Eating at the Canteen restores your energy to full!</p>
+            <p>7. Your goal is to successfully reach the Library without being caught by the monster!</p>
+        </div>
+        
+        <div class="qr-info">
+            <h3>QR Code Instructions</h3>
+            <p>Each location has a QR code with the format: <code>{"location":"Location Name"}</code> or the simplified format <code>l=X</code></p>
+            <p>Example: The Starting Point QR code could be <code>{"location":"Starting Point"}</code> or simply <code>l=S</code></p>
+        </div>
+    </div>
+
+    <!-- Scanner floating button -->
+    <button onclick="openScanner()" class="scan-button" id="scanButton">📷</button>
+    
+    <!-- Scanner container -->
+    <div id="scannerContainer">
+        <div class="scanner-content">
+            <h2>Scan Location QR Code</h2>
+            <p style="text-align: center;">Please point your camera at the QR code for this location</p>
+            
+            <div id="reader"></div>
+            
+            <div id="errorMessage" class="error-message">
+                <p>Camera initialization failed. Please ensure:</p>
+                <ul>
+                    <li>You've authorized browser access to your camera</li>
+                    <li>You're using a modern browser that supports camera access</li>
+                    <li>Try accessing via an HTTPS link</li>
+                </ul>
+            </div>
+            
+            <div class="scanner-controls">
+                <button id="startScanBtn" onclick="startScanner()" style="display: none;">Start Scanning</button>
+                <button id="stopScanBtn" onclick="closeScanner()">Close Scanner</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="gameLogic.js"></script>
+    <script>
+        // Global variables
+        let html5QrCode;
+        let isScannerInitialized = false;
+        
+        // Initialize game
+        window.onload = function() {
+            window.gameModule.initGame();
+            
+            // Update dice display
+            document.getElementById('rollDiceButton').addEventListener('click', function() {
+                const diceDisplay = document.getElementById('diceDisplay');
+                diceDisplay.textContent = '🎲';
+                
+                // Add animation effect
+                setTimeout(function() {
+                    const diceRoll = document.getElementById('diceRoll').textContent;
+                    if (diceRoll !== '-') {
+                        // Show dice emoji based on roll value
+                        const diceEmojis = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+                        diceDisplay.textContent = diceEmojis[diceRoll - 1];
+                    }
+                }, 500);
+            });
+        };
+        
+        // Open scanner
+        function openScanner() {
+            document.getElementById('scannerContainer').style.display = 'flex';
+            
+            if (!isScannerInitialized) {
+                // First-time scanner initialization
+                html5QrCode = new Html5Qrcode("reader");
+                isScannerInitialized = true;
+            }
+            
+            startScanner();
+        }
+        
+        // Close scanner
+        function closeScanner() {
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop().then(() => {
+                    console.log("QR scanning stopped");
+                }).catch(error => {
+                    console.error("Failed to stop QR scanning:", error);
+                });
+            }
+            
+            document.getElementById('scannerContainer').style.display = 'none';
+        }
+        
+        // Start scanning
+        function startScanner() {
+            const qrConfig = { fps: 10, qrbox: { width: 250, height: 250 } };
+            
+            // Hide start button, show stop button
+            document.getElementById('startScanBtn').style.display = 'none';
+            document.getElementById('stopScanBtn').style.display = 'block';
+            document.getElementById('errorMessage').style.display = 'none';
+            
+            // Try different camera access methods
+            html5QrCode.start(
+                { facingMode: "environment" }, // Try rear camera first
+                qrConfig,
+                onScanSuccess,
+                onScanFailure
+            ).catch(error => {
+                console.error("Rear camera failed, trying front camera:", error);
+                
+                // If rear camera fails, try front camera
+                html5QrCode.start(
+                    { facingMode: "user" },
+                    qrConfig,
+                    onScanSuccess,
+                    onScanFailure
+                ).catch(error2 => {
+                    console.error("Front camera also failed:", error2);
+                    
+                    // Try any available camera
+                    Html5Qrcode.getCameras().then(cameras => {
+                        if (cameras && cameras.length > 0) {
+                            html5QrCode.start(
+                                cameras[0].id,
+                                qrConfig,
+                                onScanSuccess,
+                                onScanFailure
+                            ).catch(error3 => {
+                                console.error("All attempts failed:", error3);
+                                showScanError("Cannot start camera: " + error3);
+                            });
+                        } else {
+                            showScanError("No cameras detected");
+                        }
+                    }).catch(error4 => {
+                        showScanError("Cannot get camera list: " + error4);
+                    });
+                });
+            });
+        }
+        
+        // Show scanning error
+        function showScanError(message) {
+            document.getElementById('errorMessage').style.display = 'block';
+            document.getElementById('errorMessage').innerHTML = `
+                <p>${message}</p>
+                <p>Possible solutions:</p>
+                <ul>
+                    <li>Make sure you've authorized browser access to your camera</li>
+                    <li>Try using Chrome or Firefox browser</li>
+                    <li>Try accessing via HTTPS link or localhost</li>
+                </ul>
+            `;
+            
+            // Show start button
+            document.getElementById('startScanBtn').style.display = 'block';
+        }
+        
+        // Scan success callback
+        function onScanSuccess(decodedText, decodedResult) {
+            console.log(`Scan successful: ${decodedText}`);
+            
+            // Stop scanning and close scanner
+            closeScanner();
+            
+            // Process scan result
+            processQRResult(decodedText);
+        }
+        
+        // Scan failure callback
+        function onScanFailure(error) {
+            // We usually don't need to handle scan failures
+            // console.warn(`QR scan error: ${error}`);
+        }
+        
+        // Process QR code result
+        function processQRResult(qrContent) {
+            try {
+                // Try to parse as JSON format (old format)
+                try {
+                    const jsonData = JSON.parse(qrContent);
+                    // Support full format {"location":"Starting Point"} or simplified {"l":"Starting Point"}
+                    if (jsonData && (jsonData.location || jsonData.l)) {
+                        const locationName = jsonData.location || jsonData.l;
+                        window.gameModule.handleLocationUpdate(locationName);
+                        return;
+                    }
+                } catch (jsonError) {
+                    // Not JSON format, try simplified format
+                    console.log("Not JSON format, trying simplified format");
+                }
+                
+                // Handle ultra-simplified format: l=S, l=C, l=E, etc.
+                if (qrContent.startsWith('l=')) {
+                    const locationChar = qrContent.substring(2);
+                    let fullLocation;
+                    
+                    // Map first character to full location name
+                    switch (locationChar) {
+                        // English identifiers
+                        case 'S': fullLocation = 'Starting Point'; break;
+                        case 'C': fullLocation = 'Canteen'; break;
+                        case 'E': fullLocation = 'Exchange Building'; break;
+                        case 'Y': fullLocation = 'Yangfujia Building'; break;
+                        case 'L': fullLocation = 'Library'; break;
+                        
+                        // Chinese identifiers (original)
+                        case '旅': fullLocation = 'Starting Point'; break; // 旅馆 -> Starting Point
+                        case '食': fullLocation = 'Canteen'; break;        // 食堂 -> Canteen
+                        case '计': fullLocation = 'Exchange Building'; break;  // 计算机楼 -> Exchange Building
+                        case '交': fullLocation = 'Yangfujia Building'; break; // 交换楼 -> Yangfujia Building
+                        case '图': fullLocation = 'Library'; break;        // 图书馆 -> Library
+                        default: 
+                            alert("Unknown location identifier: " + locationChar);
+                            return;
+                    }
+                    
+                    window.gameModule.handleLocationUpdate(fullLocation);
+                } else {
+                    alert("Unrecognized QR code content format: " + qrContent);
+                }
+            } catch (e) {
+                alert("Error processing QR code content: " + e.message);
+                console.error("QR code processing error:", e);
+            }
+        }
+    </script>
+</body>
+</html>
